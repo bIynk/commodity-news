@@ -1,0 +1,135 @@
+# Commodity AI Dashboard Configuration
+
+# API Configuration
+api:
+  perplexity:
+    model: "sonar-medium-online"  # Options: sonar-small-online, sonar-medium-online
+    temperature: 0.2
+    top_p: 0.9
+    return_citations: true
+    timeout: 30  # seconds
+    max_retries: 3
+
+# Commodity Configuration - Steel Sector Focus
+commodities:
+  # Steel Raw Materials
+  - name: "iron ore"
+    display_name: "Iron Ore"
+    category: "Steel Raw Materials"
+    unit: "USD/ton"
+    vietnam_specific: true
+    query_keywords:
+      - "iron ore 62% Fe"
+      - "Chinese ports"
+      - "Australia Brazil exports"
+    
+  - name: "coking coal"
+    display_name: "Coking Coal"
+    category: "Steel Raw Materials"
+    unit: "USD/ton"
+    vietnam_specific: true
+    query_keywords:
+      - "metallurgical coal"
+      - "premium hard coking coal"
+      - "Australia FOB"
+  
+  - name: "scrap steel"
+    display_name: "Scrap Steel"
+    category: "Steel Raw Materials"
+    unit: "USD/ton"
+    vietnam_specific: true
+    query_keywords:
+      - "HMS 1&2"
+      - "Turkey import"
+      - "ferrous scrap"
+
+  # Steel Products
+  - name: "steel rebar"
+    display_name: "Steel Rebar"
+    category: "Steel Products"
+    unit: "USD/ton"
+    vietnam_specific: true
+    query_keywords:
+      - "construction steel"
+      - "rebar prices Asia"
+      - "Vietnam steel prices"
+  
+  - name: "steel HRC"
+    display_name: "Hot Rolled Coil"
+    category: "Steel Products"
+    unit: "USD/ton"
+    vietnam_specific: true
+    query_keywords:
+      - "hot rolled coil"
+      - "HRC Asia"
+      - "China export prices"
+
+# Dashboard Configuration
+dashboard:
+  title: "Commodity AI Dashboard - Vietnam Steel Market"
+  auto_refresh_minutes: 30
+  cache_duration_minutes: 60
+  default_timeframe: "1 week"  # Options: "1 week", "1 month"
+  
+  # Display settings
+  display:
+    max_news_cards: 12
+    max_table_rows: 15
+    show_metrics: true
+    show_export_options: true
+    
+  # Theme
+  theme:
+    primary_color: "#1e3d59"
+    secondary_color: "#ff6b6b"
+    success_color: "#28a745"
+    warning_color: "#ffc107"
+    danger_color: "#dc3545"
+
+# Database Configuration
+database:
+  path: "data/commodity_data.db"
+  cleanup_days: 90  # Days of data to retain
+  backup_enabled: true
+  backup_path: "data/backups/"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: "logs/commodity_dashboard.log"
+  max_size_mb: 10
+  backup_count: 5
+
+# Data Sources (for reference) - Steel Sector Focus
+data_sources:
+  # Iron Ore
+  - name: "Reuters Commodities"
+    url: "https://www.reuters.com/business/commodities/"
+  - name: "Trading Economics - Iron Ore"
+    url: "https://tradingeconomics.com/commodity/iron-ore"
+  - name: "Mining.com - Iron Ore"
+    url: "https://www.mining.com/commodity/iron-ore/"
+  
+  # Coking Coal
+  - name: "Mining.com - Coal"
+    url: "https://www.mining.com/commodity/coal/"
+  - name: "Hellenic Shipping News"
+    url: "https://www.hellenicshippingnews.com/category/commodities/coal/"
+  
+  # Scrap Steel
+  - name: "Scrap Monster"
+    url: "https://www.scrapmonster.com/"
+  - name: "SteelOrbis"
+    url: "https://www.steelorbis.com/"
+  
+  # Steel Products (Rebar, HRC)
+  - name: "Trading Economics - Steel"
+    url: "https://tradingeconomics.com/commodity/steel"
+  - name: "SteelOrbis - Market Reports"
+    url: "https://www.steelorbis.com/"
+  
+  # General Markets
+  - name: "Investing.com - Commodities"
+    url: "https://www.investing.com/commodities/"
+  - name: "XE Currency News"
+    url: "https://www.xe.com/news/"

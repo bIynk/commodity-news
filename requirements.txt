@@ -1,0 +1,44 @@
+# Core dependencies
+streamlit==1.29.0
+pandas==2.1.4
+numpy==1.26.2
+python-dotenv==1.0.0
+
+# Database drivers
+pyodbc==5.0.1
+sqlalchemy==2.0.23
+
+# API and HTTP
+requests==2.31.0
+urllib3==2.1.0
+aiohttp==3.9.1
+
+# Data visualization
+plotly==5.18.0
+
+# Database
+# SQLite3 is included in Python standard library
+
+# Configuration
+pyyaml==6.0.1
+
+# Date and time handling
+python-dateutil==2.8.2
+
+# Optional: For enhanced performance
+asyncio-throttle==1.0.2
+
+# Production enhancements (required for production)
+# Logging and monitoring
+python-json-logger==2.0.7
+
+# Development dependencies (optional for production)
+pytest==7.4.3
+black==23.12.0
+flake8==6.1.0
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+
+# Documentation (optional)
+sphinx==7.2.6
+sphinx-rtd-theme==2.0.0
