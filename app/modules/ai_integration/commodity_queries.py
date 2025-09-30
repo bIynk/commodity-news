@@ -308,6 +308,8 @@ class CommodityQueryOrchestrator:
 
         # Step 3: For high z-score commodities without cache, query Perplexity AI
         commodities_to_query = []
+        skipped_low_zscore = []
+        high_zscore_commodities = []
 
         if not force_refresh:  # Only check z-scores if not forcing refresh
             for c in commodities_to_process:
@@ -318,12 +320,18 @@ class CommodityQueryOrchestrator:
                 if commodity_zscores is not None:
                     zscore = commodity_zscores.get(c.display_name, 0.0)
                     if abs(zscore) <= self.zscore_threshold:
-                        logger.info(f"Not querying API for {c.name} - z-score {zscore:.2f} below threshold")
+                        skipped_low_zscore.append((c.name, zscore))
                         continue
                     else:
-                        logger.info(f"Will query API for {c.name} - z-score {zscore:.2f} exceeds threshold")
+                        high_zscore_commodities.append((c.name, zscore))
 
                 commodities_to_query.append(c)
+
+            # Log summary instead of individual lines
+            if skipped_low_zscore:
+                logger.info(f"Skipped {len(skipped_low_zscore)} commodities with z-score below threshold (±{self.zscore_threshold})")
+            if high_zscore_commodities:
+                logger.info(f"Found {len(high_zscore_commodities)} commodities with high z-scores: {', '.join([f'{name} ({z:.2f})' for name, z in high_zscore_commodities[:5]])}")
         else:
             # Force refresh: query all commodities not in cache
             commodities_to_query = [c for c in commodities_to_process if c.name not in existing_commodities]

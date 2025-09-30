@@ -147,13 +147,15 @@ class AIDatabase:
                 logger.warning(f"Blocked potential SQL injection attempt in commodity name: {name}")
                 raise ValueError(f"Invalid commodity name - contains forbidden pattern: {pattern}")
 
-        # Allow alphanumeric, spaces, hyphens, underscores, and parentheses
+        # Allow alphanumeric, spaces, hyphens, underscores, parentheses, and Unicode characters
         # Parentheses are needed for regional variants like "Rice (US)", "Steel (China)"
-        if not re.match(r'^[a-zA-Z0-9\s\-_\(\)]+$', name):
+        # Unicode letters (\w with re.UNICODE) allows Vietnamese, Chinese, and other international characters
+        # Also allow forward slashes, commas, ampersands, and percentage signs for commodity names
+        if not re.match(r'^[\w\s\-_\(\)/,&%\.]+$', name, re.UNICODE):
             raise ValueError(f"Invalid commodity name format: {name}")
 
-        # Length check
-        if len(name) > 50:
+        # Length check (increased to accommodate longer international names)
+        if len(name) > 100:
             raise ValueError(f"Commodity name too long: {name}")
 
         return name
@@ -586,8 +588,21 @@ class AIDatabase:
         try:
             cutoff_date = datetime.now().date() - timedelta(days=days)
 
-            # Sanitize commodity names
-            sanitized = [self._sanitize_commodity_name(c) for c in commodities]
+            # Sanitize commodity names - skip invalid ones instead of failing completely
+            sanitized = []
+            sanitized_map = {}  # Map sanitized -> original
+            for c in commodities:
+                try:
+                    sanitized_name = self._sanitize_commodity_name(c)
+                    sanitized.append(sanitized_name)
+                    sanitized_map[sanitized_name] = c
+                except ValueError as e:
+                    logger.warning(f"Skipping invalid commodity name '{c}': {e}")
+                    continue
+
+            if not sanitized:
+                logger.warning("No valid commodity names after sanitization")
+                return {commodity: [] for commodity in commodities}
 
             # Build IN clause for SQL
             placeholders = ', '.join([f':commodity_{i}' for i in range(len(sanitized))])
