@@ -568,6 +568,84 @@ class AIDatabase:
             logger.error(f"Failed to get recent intelligence: {e}")
             return pd.DataFrame()
 
+    def get_all_weekly_news_batch(self, commodities: List[str], days: int = 7) -> Dict[str, List[Dict]]:
+        """
+        Batch load weekly news for multiple commodities in a single query.
+        Much faster than calling get_weekly_news() for each commodity.
+
+        Args:
+            commodities: List of commodity names
+            days: Number of days to look back (default 7)
+
+        Returns:
+            Dictionary mapping commodity name to list of news items
+        """
+        if not commodities:
+            return {}
+
+        try:
+            cutoff_date = datetime.now().date() - timedelta(days=days)
+
+            # Sanitize commodity names
+            sanitized = [self._sanitize_commodity_name(c) for c in commodities]
+
+            # Build IN clause for SQL
+            placeholders = ', '.join([f':commodity_{i}' for i in range(len(sanitized))])
+            params = {f'commodity_{i}': name for i, name in enumerate(sanitized)}
+            params['cutoff_date'] = cutoff_date
+
+            query = f"""
+            SELECT
+                Commodity,
+                News_Date,
+                Headline,
+                Summary,
+                Source_URLs,
+                Sentiment
+            FROM AI_News_Items
+            WHERE Commodity IN ({placeholders})
+              AND News_Date >= :cutoff_date
+            ORDER BY Commodity, News_Date DESC
+            """
+
+            result_df = self.db.execute_query(query, params)
+
+            # Group by commodity
+            news_by_commodity = {}
+            for commodity in commodities:
+                news_by_commodity[commodity] = []
+
+            if not result_df.empty:
+                for _, row in result_df.iterrows():
+                    # Parse source URLs if JSON
+                    source_urls = row['Source_URLs']
+                    if isinstance(source_urls, str):
+                        try:
+                            source_urls = json.loads(source_urls)
+                        except:
+                            source_urls = [source_urls] if source_urls else []
+
+                    news_item = {
+                        'headline': row['Headline'],
+                        'summary': row['Summary'],
+                        'sources': source_urls,
+                        'date': row['News_Date'].isoformat() if hasattr(row['News_Date'], 'isoformat') else str(row['News_Date']),
+                        'sentiment': row['Sentiment']
+                    }
+
+                    news_by_commodity[row['Commodity']].append(news_item)
+
+            # Log summary
+            total_news = sum(len(news) for news in news_by_commodity.values())
+            if total_news > 0:
+                logger.info(f"Batch loaded {total_news} news items for {len(commodities)} commodities")
+
+            return news_by_commodity
+
+        except Exception as e:
+            logger.error(f"Failed to batch load weekly news: {e}")
+            return {commodity: [] for commodity in commodities}
+
     def get_weekly_news(self, commodity: str, days: int = 7) -> List[Dict]:
         """
         Get news items for a commodity from the past week
@@ -619,7 +697,9 @@ class AIDatabase:
                     'sentiment': row['Sentiment']
                 })
 
-            logger.info(f"Retrieved {len(news_items)} news items for {commodity} from past {days} days")
+            # Only log if news items found (reduce log noise)
+            if news_items:
+                logger.info(f"Retrieved {len(news_items)} news items for {commodity} from past {days} days")
             return news_items
 
         except Exception as e:

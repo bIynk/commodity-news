@@ -198,7 +198,11 @@ class CommodityQueryOrchestrator:
 
         # Step 2: ALWAYS get ALL cached data from the past 7 days
         if self.database and self.database.has_read_access():
-            logger.info(f"Loading ALL cached data from past 7 days")
+            logger.info(f"Loading cached data from past 7 days for {len(commodities_to_process)} commodities")
+
+            # Batch load news for all commodities at once (much faster than individual queries)
+            commodity_names = [c.name for c in commodities_to_process]
+            batch_news = self.database.get_all_weekly_news_batch(commodity_names, days=7)
 
             for commodity in commodities_to_process:
                 # Check for cached data using data's last updated date
@@ -216,10 +220,9 @@ class CommodityQueryOrchestrator:
 
                     results.append(cached_result)
                     existing_commodities.add(commodity.name)
-                    logger.info(f"Found cached data for {commodity.name}")
                 else:
-                    # Even if no recent cache, check for historical market intelligence and weekly news
-                    weekly_news = self.database.get_weekly_news(commodity.name, days=7)
+                    # Get news from batch load (already loaded above)
+                    weekly_news = batch_news.get(commodity.name, [])
                     historical_intelligence = self.database.get_historical_market_intelligence(commodity.name, days=7)
 
                     if weekly_news or historical_intelligence:
