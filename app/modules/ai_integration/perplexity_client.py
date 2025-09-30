@@ -24,7 +24,7 @@ load_dotenv()
 from ..utils.error_handler import safe_execute, retry_on_failure, create_error_response
 from ..utils.rate_limiter import get_perplexity_rate_limiter
 
-logging.basicConfig(level=logging.INFO)
+# Get logger (don't call basicConfig - let main.py configure it)
 logger = logging.getLogger(__name__)
 
 TimeFrame = Literal["1 week", "1 month"]

@@ -15,7 +15,7 @@ from .data_processor import DataProcessor
 from .sector_config import get_sector_config
 from ..data_loader import get_commodity_metadata
 
-logging.basicConfig(level=logging.INFO)
+# Get logger (don't call basicConfig - let main.py configure it)
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -510,9 +510,8 @@ class CommodityQueryOrchestrator:
                 logger.info(f"Found {commodity_name} in today's database cache")
                 return db_result
 
-        # Check z-score threshold if provided
+        # Check z-score threshold if provided (don't log - already logged in batch summary)
         if commodity_zscore is not None and abs(commodity_zscore) <= self.zscore_threshold:
-            logger.info(f"Skipping {commodity_name} - z-score {commodity_zscore:.2f} below threshold {self.zscore_threshold}")
             return {
                 "success": False,
                 "commodity": commodity.name,

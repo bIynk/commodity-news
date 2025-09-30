@@ -7,6 +7,12 @@ import re
 import logging
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
+# Configure logging once at application entry point
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:%(name)s:%(message)s',
+    force=True  # Override any existing configurations
+)
 logger = logging.getLogger(__name__)
 from modules.data_loader import load_data_from_database
 from modules.calculations import calculate_price_changes, compute_zscore, detect_frequency, compute_frequency_aware_zscore

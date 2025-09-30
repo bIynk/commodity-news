@@ -15,7 +15,7 @@ from sqlalchemy import text
 # Import the existing DatabaseConnection from SQL dashboard
 from ..db_connection import DatabaseConnection, get_connection_string
 
-logging.basicConfig(level=logging.INFO)
+# Get logger (don't call basicConfig - let main.py configure it)
 logger = logging.getLogger(__name__)
 
 def get_ai_connection_string() -> str:

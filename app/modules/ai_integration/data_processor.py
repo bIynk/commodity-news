@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import json
 from difflib import SequenceMatcher
 
-logging.basicConfig(level=logging.INFO)
+# Get logger (don't call basicConfig - let main.py configure it)
 logger = logging.getLogger(__name__)
 
 class DataProcessor:
