@@ -7,8 +7,14 @@ streamlit-aggrid
 python-dotenv==1.0.0
 
 # Database
-pyodbc==5.0.1
+# Use pymssql for Streamlit Cloud (no system dependencies)
+# Use pyodbc for local development (requires ODBC driver)
+pymssql==2.2.11
 sqlalchemy==2.0.23
+
+# Optional: pyodbc for local development
+# Uncomment if developing locally with ODBC drivers
+# pyodbc==5.0.1
 
 # API and HTTP
 requests==2.31.0

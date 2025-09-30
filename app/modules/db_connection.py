@@ -1,12 +1,11 @@
-import pyodbc
-import sqlalchemy
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, Engine
 from sqlalchemy.pool import QueuePool
 import pandas as pd
 import streamlit as st
 from typing import Optional, Dict, Any
-import urllib
+import urllib.parse
 import os
+import re
 
 def get_connection_string() -> str:
     """
@@ -58,38 +57,169 @@ def get_connection_string() -> str:
 
 
 class DatabaseConnection:
-    """Manages SQL Server database connections with connection pooling"""
-    
+    """
+    Manages SQL Server database connections with connection pooling.
+    Supports both pyodbc (local development) and pymssql (Streamlit Cloud).
+    """
+
     def __init__(self, connection_string: str = None):
         """
         Initialize database connection
-        
+
         Args:
-            connection_string: ODBC connection string. If None, gets from config
+            connection_string: Connection string (ODBC format or pymssql URL). If None, gets from config
         """
-        self.connection_string = connection_string or get_connection_string()
+        self.conn_string = connection_string or get_connection_string()
         self.engine = None
         self.connection = None
         self._initialize_engine()
-    
-    def _initialize_engine(self):
-        """Initialize SQLAlchemy engine with connection pooling"""
+
+    def _parse_connection_string(self, conn_str: str) -> Dict[str, str]:
+        """
+        Parse connection string in ODBC or key-value format.
+
+        Args:
+            conn_str: Connection string to parse
+
+        Returns:
+            Dict with parsed parameters: host, port, database, username, password
+        """
+        params = {}
+
+        # Remove extra whitespace and newlines
+        conn_str = re.sub(r'\s+', ' ', conn_str.strip())
+
+        # Parse key=value pairs
+        # Handle both semicolon and newline separators
+        pairs = re.split(r'[;\n]', conn_str)
+
+        for pair in pairs:
+            pair = pair.strip()
+            if '=' in pair:
+                key, value = pair.split('=', 1)
+                key = key.strip().upper()
+                value = value.strip().strip('{}')  # Remove curly braces if present
+
+                if key == 'SERVER':
+                    # Parse SERVER=host,port or SERVER=host
+                    if ',' in value:
+                        host, port = value.split(',', 1)
+                        params['host'] = host.strip()
+                        params['port'] = port.strip()
+                    else:
+                        params['host'] = value
+                        params['port'] = '1433'  # Default SQL Server port
+                elif key == 'DATABASE':
+                    params['database'] = value
+                elif key in ('UID', 'USER', 'USERNAME'):
+                    params['username'] = value
+                elif key in ('PWD', 'PASSWORD'):
+                    params['password'] = value
+
+        return params
+
+    def _create_engine(self) -> Engine:
+        """
+        Create SQLAlchemy engine from connection string.
+        Automatically detects and uses appropriate driver (pymssql for cloud, pyodbc for local).
+
+        Returns:
+            Engine: SQLAlchemy engine
+        """
         try:
-            # URL encode the connection string for SQLAlchemy
-            params = urllib.parse.quote_plus(self.connection_string)
-            
-            # Create SQLAlchemy engine with connection pooling
-            self.engine = create_engine(
-                f"mssql+pyodbc:///?odbc_connect={params}",
-                poolclass=QueuePool,
+            # First, try to parse the connection string
+            if 'DRIVER=' in self.conn_string.upper() or '=' in self.conn_string:
+                # Parse ODBC or key-value format
+                params = self._parse_connection_string(self.conn_string)
+
+                if 'url' in params:
+                    # Already in pymssql format
+                    connection_url = params['url']
+                else:
+                    # Build pymssql connection URL
+                    # URL encode password to handle special characters
+                    password = urllib.parse.quote_plus(params['password'])
+                    username = urllib.parse.quote_plus(params['username'])
+
+                    connection_url = (
+                        f"mssql+pymssql://{username}:{password}@"
+                        f"{params['host']}:{params.get('port', '1433')}/"
+                        f"{params['database']}"
+                    )
+
+                    # Add query parameters for Azure SQL
+                    connection_url += "?charset=utf8"
+            else:
+                # Assume it's already a properly formatted URL
+                connection_url = self.conn_string
+
+            # Create engine with connection pooling
+            engine = create_engine(
+                connection_url,
                 pool_size=5,
                 max_overflow=10,
-                pool_recycle=3600,
-                pool_pre_ping=True,
-                fast_executemany=True
+                pool_pre_ping=True,  # Verify connections before using
+                pool_recycle=3600,   # Recycle connections after 1 hour
+                echo=False,          # Set to True for SQL debugging
+                connect_args={
+                    "timeout": 30,   # Connection timeout in seconds
+                }
             )
+
+            return engine
+
         except Exception as e:
-            st.error(f"Failed to initialize database engine: {str(e)}")
+            # If pymssql fails, try pyodbc as fallback (for local development)
+            try:
+                import pyodbc
+                # URL encode the connection string for SQLAlchemy
+                params = urllib.parse.quote_plus(self.conn_string)
+                # Create SQLAlchemy connection URL for pyodbc
+                connection_url = f"mssql+pyodbc:///?odbc_connect={params}"
+
+                # Create engine with connection pooling
+                engine = create_engine(
+                    connection_url,
+                    poolclass=QueuePool,
+                    pool_size=5,
+                    max_overflow=10,
+                    pool_pre_ping=True,
+                    pool_recycle=3600,
+                    echo=False,
+                    fast_executemany=True
+                )
+
+                return engine
+            except ImportError:
+                # If pyodbc is not available, re-raise the original pymssql error
+                raise Exception(
+                    f"Failed to create database engine with pymssql: {str(e)}\n"
+                    "pyodbc is also not available. Install either pymssql or pyodbc."
+                )
+            except Exception as pyodbc_error:
+                # Re-raise the original pymssql error if pyodbc also fails
+                raise Exception(
+                    f"Failed to create database engine.\n"
+                    f"pymssql error: {str(e)}\n"
+                    f"pyodbc error: {str(pyodbc_error)}"
+                )
+
+    def _initialize_engine(self):
+        """Initialize SQLAlchemy engine with automatic driver detection"""
+        try:
+            self.engine = self._create_engine()
+
+            # Test connection
+            with self.engine.connect() as conn:
+                result = conn.execute(text("SELECT 1"))
+                if result.scalar() != 1:
+                    raise Exception("Connection test failed")
+
+        except Exception as e:
+            st.error(
+                f"Failed to initialize database engine: {str(e)}\n\n"
+                "Ensure either pymssql (for Streamlit Cloud) or pyodbc (for local development) is installed."
+            )
             raise
     
     def test_connection(self) -> bool:
