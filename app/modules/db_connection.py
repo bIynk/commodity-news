@@ -101,9 +101,13 @@ class DatabaseConnection:
                 value = value.strip().strip('{}')  # Remove curly braces if present
 
                 if key == 'SERVER':
-                    # Parse SERVER=host,port or SERVER=host:port or SERVER=host
+                    # Parse SERVER=host,port or SERVER=tcp:host,port or SERVER=host:port or SERVER=host
+                    # Remove tcp: prefix if present (Azure SQL format)
+                    if value.lower().startswith('tcp:'):
+                        value = value[4:]
+
                     if ',' in value:
-                        # Format: host,port
+                        # Format: host,port (standard ODBC)
                         host, port = value.split(',', 1)
                         params['host'] = host.strip()
                         params['port'] = port.strip()
