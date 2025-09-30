@@ -134,6 +134,11 @@ class AIDatabase:
         # Strip whitespace first
         name = name.strip()
 
+        # Check for mojibake (corrupted encoding) - common pattern: letter followed by ?
+        # This happens when UTF-8 Vietnamese characters are read with wrong encoding
+        if '?' in name:
+            raise ValueError(f"Commodity name contains corrupted characters: {name}")
+
         # Block dangerous SQL characters and patterns
         dangerous_patterns = [
             ';', '--', '/*', '*/', 'xp_', 'sp_',  # SQL injection attempts
