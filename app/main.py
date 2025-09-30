@@ -175,23 +175,24 @@ if df_data is not None and df_list is not None:
         # Note: AI Intelligence will analyze commodities based on the filters above
         st.sidebar.caption("AI will analyze commodities matching the filters above")
 
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            # Disable refresh if no write access
-            refresh_disabled = ai_database and not ai_database.has_write_access
-            if st.button("🔄 Refresh AI", use_container_width=True, disabled=refresh_disabled,
-                        help="Write access required to fetch new data" if refresh_disabled else "Fetch latest AI data"):
-                st.session_state.ai_refresh = True
-        with col2:
-            # Clear cache only works with write access
-            clear_disabled = ai_database and not ai_database.has_write_access
-            if st.button("🗑️ Clear Cache", use_container_width=True, disabled=clear_disabled,
-                        help="Write access required to clear cache" if clear_disabled else "Clear cached AI data"):
-                if ai_orchestrator:
-                    ai_orchestrator.daily_cache.clear()
-                    if ai_database:
-                        ai_database.clear_cache()
-                st.success("Cache cleared!")
+        # Buttons disabled for now
+        # col1, col2 = st.sidebar.columns(2)
+        # with col1:
+        #     # Disable refresh if no write access
+        #     refresh_disabled = ai_database and not ai_database.has_write_access
+        #     if st.button("🔄 Refresh AI", use_container_width=True, disabled=refresh_disabled,
+        #                 help="Write access required to fetch new data" if refresh_disabled else "Fetch latest AI data"):
+        #         st.session_state.ai_refresh = True
+        # with col2:
+        #     # Clear cache only works with write access
+        #     clear_disabled = ai_database and not ai_database.has_write_access
+        #     if st.button("🗑️ Clear Cache", use_container_width=True, disabled=clear_disabled,
+        #                 help="Write access required to clear cache" if clear_disabled else "Clear cached AI data"):
+        #         if ai_orchestrator:
+        #             ai_orchestrator.daily_cache.clear()
+        #             if ai_database:
+        #                 ai_database.clear_cache()
+        #         st.success("Cache cleared!")
 
         # Show cache status and threshold info
         if hasattr(st.session_state, 'ai_last_update'):
