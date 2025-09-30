@@ -139,6 +139,11 @@ class DatabaseConnection:
                 # Parse ODBC or key-value format
                 params = self._parse_connection_string(self.conn_string)
 
+                # Validate required parameters
+                if not all(key in params for key in ['host', 'database', 'username', 'password']):
+                    missing = [k for k in ['host', 'database', 'username', 'password'] if k not in params]
+                    raise ValueError(f"Missing required connection parameters: {missing}")
+
                 if 'url' in params:
                     # Already in pymssql format
                     connection_url = params['url']
@@ -148,9 +153,17 @@ class DatabaseConnection:
                     password = urllib.parse.quote_plus(params['password'])
                     username = urllib.parse.quote_plus(params['username'])
 
+                    # Ensure port is just the number (remove any host part if still present)
+                    port = params.get('port', '1433')
+                    host = params['host']
+
+                    # Double-check: if host still contains ':', split it again
+                    if ':' in host:
+                        host, port = host.rsplit(':', 1)
+
                     connection_url = (
                         f"mssql+pymssql://{username}:{password}@"
-                        f"{params['host']}:{params.get('port', '1433')}/"
+                        f"{host}:{port}/"
                         f"{params['database']}"
                     )
 
