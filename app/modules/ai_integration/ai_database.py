@@ -158,7 +158,7 @@ class AIDatabase:
 
         return name
 
-    def save_query_result(self, commodity: str, query_type: str, timeframe: str, result: Dict) -> bool:
+    def save_query_result(self, commodity: str, query_type: str, timeframe: str, result: Dict, query_date: Optional[datetime.date] = None) -> bool:
         """
         Save Perplexity query result to AI_Query_Cache table
 
@@ -167,6 +167,7 @@ class AIDatabase:
             query_type: Type of query (not used in current schema)
             timeframe: Query timeframe (e.g., "1 week", "1 month")
             result: Query result dictionary
+            query_date: Date of the query (defaults to today)
 
         Returns:
             bool: True if successful, False otherwise
@@ -876,7 +877,8 @@ class AIDatabase:
                     result.get("commodity"),
                     "full",  # query_type
                     timeframe,
-                    result
+                    result,
+                    query_date  # Pass the query_date parameter
                 ):
                     success = False
 
