@@ -1,16 +1,16 @@
 # Core dependencies
 streamlit==1.29.0
-pandas==2.1.4
-numpy==1.26.2
+pandas>=2.0.0,<3.0.0
+numpy>=1.24.0,<2.0.0
 plotly==5.18.0
-streamlit-aggrid
+streamlit-aggrid>=0.3.4
 python-dotenv==1.0.0
 
 # Database
 # Use pymssql for Streamlit Cloud (no system dependencies)
 # Use pyodbc for local development (requires ODBC driver)
-pymssql==2.2.11
-sqlalchemy==2.0.23
+pymssql>=2.2.0,<3.0.0
+sqlalchemy>=2.0.0,<3.0.0
 
 # Optional: pyodbc for local development
 # Uncomment if developing locally with ODBC drivers
