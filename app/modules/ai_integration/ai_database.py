@@ -150,8 +150,8 @@ class AIDatabase:
         # Allow alphanumeric, spaces, hyphens, underscores, parentheses, and Unicode characters
         # Parentheses are needed for regional variants like "Rice (US)", "Steel (China)"
         # Unicode letters (\w with re.UNICODE) allows Vietnamese, Chinese, and other international characters
-        # Also allow forward slashes, commas, ampersands, and percentage signs for commodity names
-        if not re.match(r'^[\w\s\-_\(\)/,&%\.]+$', name, re.UNICODE):
+        # Also allow: / , & % . + for commodity names (e.g., "NPK 16-16-8+13S")
+        if not re.match(r'^[\w\s\-_\(\)/,&%\.\+]+$', name, re.UNICODE):
             raise ValueError(f"Invalid commodity name format: {name}")
 
         # Length check (increased to accommodate longer international names)

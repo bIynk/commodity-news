@@ -204,107 +204,123 @@ class CommodityQueryOrchestrator:
             commodity_names = [c.name for c in commodities_to_process]
             batch_news = self.database.get_all_weekly_news_batch(commodity_names, days=7)
 
+            # Track invalid commodities to log summary
+            invalid_commodities = []
+
             for commodity in commodities_to_process:
-                # Check for cached data using data's last updated date
-                cached_result = self.database.get_cached_result_by_date(
-                    commodity.name, timeframe, cache_date
-                ) if hasattr(self.database, 'get_cached_result_by_date') else \
-                    self.database.get_today_results(commodity.name, timeframe)
+                try:
+                    # Check for cached data using data's last updated date
+                    cached_result = self.database.get_cached_result_by_date(
+                        commodity.name, timeframe, cache_date
+                    ) if hasattr(self.database, 'get_cached_result_by_date') else \
+                        self.database.get_today_results(commodity.name, timeframe)
 
-                if cached_result:
-                    # Add z-score info if available
-                    if commodity_zscores is not None:
-                        zscore = commodity_zscores.get(commodity.display_name, 0.0)
-                        cached_result['data']['zscore'] = zscore
-                        cached_result['data']['below_threshold'] = abs(zscore) <= self.zscore_threshold
+                    if cached_result:
+                        # Add z-score info if available
+                        if commodity_zscores is not None:
+                            zscore = commodity_zscores.get(commodity.display_name, 0.0)
+                            cached_result['data']['zscore'] = zscore
+                            cached_result['data']['below_threshold'] = abs(zscore) <= self.zscore_threshold
 
-                    results.append(cached_result)
-                    existing_commodities.add(commodity.name)
-                else:
-                    # Get news from batch load (already loaded above)
-                    weekly_news = batch_news.get(commodity.name, [])
-                    historical_intelligence = self.database.get_historical_market_intelligence(commodity.name, days=7)
+                        results.append(cached_result)
+                        existing_commodities.add(commodity.name)
+                    else:
+                        # Get news from batch load (already loaded above)
+                        weekly_news = batch_news.get(commodity.name, [])
+                        historical_intelligence = self.database.get_historical_market_intelligence(commodity.name, days=7)
 
-                    if weekly_news or historical_intelligence:
-                        # Create a result from historical data (don't log each one - will log summary at end)
-                        # logger.info(f"Found historical data for {commodity.name} (no recent cache)")
+                        if weekly_news or historical_intelligence:
+                            # Create a result from historical data (don't log each one - will log summary at end)
+                            # logger.info(f"Found historical data for {commodity.name} (no recent cache)")
 
-                        # Process news items and collect source URLs
-                        news_items = []
-                        all_source_urls = []  # Collect all source URLs from news items
+                            # Process news items and collect source URLs
+                            news_items = []
+                            all_source_urls = []  # Collect all source URLs from news items
 
-                        if weekly_news:
-                            for news in weekly_news[:6]:  # Limit to 6 items
-                                try:
-                                    news_datetime = datetime.fromisoformat(news.get('date', '').replace('Z', '+00:00'))
-                                    date_str = news_datetime.strftime('%Y-%m-%d')
-                                    sentiment = news.get('sentiment', 'neutral')
+                            if weekly_news:
+                                for news in weekly_news[:6]:  # Limit to 6 items
+                                    try:
+                                        news_datetime = datetime.fromisoformat(news.get('date', '').replace('Z', '+00:00'))
+                                        date_str = news_datetime.strftime('%Y-%m-%d')
+                                        sentiment = news.get('sentiment', 'neutral')
 
-                                    # Extract source URLs from this news item
-                                    sources = news.get('sources', [])
-                                    if sources:
-                                        # Sources might be a list or a string
-                                        if isinstance(sources, list):
-                                            all_source_urls.extend(sources)
-                                        else:
-                                            all_source_urls.append(sources)
+                                        # Extract source URLs from this news item
+                                        sources = news.get('sources', [])
+                                        if sources:
+                                            # Sources might be a list or a string
+                                            if isinstance(sources, list):
+                                                all_source_urls.extend(sources)
+                                            else:
+                                                all_source_urls.append(sources)
 
-                                    news_items.append({
-                                        'headline': news.get('headline', ''),
-                                        'date': date_str,
-                                        'price_impact': 'bullish' if 'bullish' in sentiment else 'bearish' if 'bearish' in sentiment else 'neutral'
-                                    })
-                                except:
-                                    continue
+                                        news_items.append({
+                                            'headline': news.get('headline', ''),
+                                            'date': date_str,
+                                            'price_impact': 'bullish' if 'bullish' in sentiment else 'bearish' if 'bearish' in sentiment else 'neutral'
+                                        })
+                                    except:
+                                        continue
 
-                        # Use historical intelligence if available, otherwise use defaults
-                        historical_date = None
-                        if historical_intelligence:
-                            current_price = historical_intelligence.get('current_price', 'N/A')
-                            price_change = historical_intelligence.get('price_change', 'N/A')
-                            trend = historical_intelligence.get('trend', 'unknown')
-                            key_drivers = historical_intelligence.get('key_drivers', [])
-                            price_outlook = historical_intelligence.get('price_outlook', '')
-                            # Get the analysis date from historical intelligence
-                            historical_date = historical_intelligence.get('analysis_date')
-                        else:
-                            current_price = 'N/A'
-                            price_change = 'N/A'
-                            trend = 'unknown'
-                            key_drivers = []
-                            price_outlook = ''
+                            # Use historical intelligence if available, otherwise use defaults
+                            historical_date = None
+                            if historical_intelligence:
+                                current_price = historical_intelligence.get('current_price', 'N/A')
+                                price_change = historical_intelligence.get('price_change', 'N/A')
+                                trend = historical_intelligence.get('trend', 'unknown')
+                                key_drivers = historical_intelligence.get('key_drivers', [])
+                                price_outlook = historical_intelligence.get('price_outlook', '')
+                                # Get the analysis date from historical intelligence
+                                historical_date = historical_intelligence.get('analysis_date')
+                            else:
+                                current_price = 'N/A'
+                                price_change = 'N/A'
+                                trend = 'unknown'
+                                key_drivers = []
+                                price_outlook = ''
 
-                        if news_items or historical_intelligence:
-                            # Add z-score info if available
-                            zscore = commodity_zscores.get(commodity.display_name, 0.0) if commodity_zscores else 0.0
+                            if news_items or historical_intelligence:
+                                # Add z-score info if available
+                                zscore = commodity_zscores.get(commodity.display_name, 0.0) if commodity_zscores else 0.0
 
-                            # Deduplicate and clean source URLs
-                            unique_source_urls = list(set(all_source_urls)) if all_source_urls else []
+                                # Deduplicate and clean source URLs
+                                unique_source_urls = list(set(all_source_urls)) if all_source_urls else []
 
-                            # Use historical date if available, otherwise use cache_date
-                            result_date = historical_date if historical_date else str(cache_date)
+                                # Use historical date if available, otherwise use cache_date
+                                result_date = historical_date if historical_date else str(cache_date)
 
-                            results.append({
-                                'success': True,
-                                'commodity': commodity.name,
-                                'display_name': commodity.display_name,
-                                'data': {
+                                results.append({
+                                    'success': True,
+                                    'commodity': commodity.name,
                                     'display_name': commodity.display_name,
-                                    'category': commodity.category,
-                                    'market_news': news_items,
-                                    'trend': trend,
-                                    'zscore': zscore,
-                                    'below_threshold': abs(zscore) <= self.zscore_threshold,
-                                    'source_urls': unique_source_urls,  # Use actual source URLs from cached news
-                                    'key_drivers': key_drivers if key_drivers else ['Historical data'],
-                                    'current_price': current_price,
-                                    'price_change': price_change,
-                                    'price_outlook': price_outlook
-                                },
-                                'from_cache_only': True,
-                                'cache_date': result_date  # Add cache_date for historical results
-                            })
-                            existing_commodities.add(commodity.name)
+                                    'data': {
+                                        'display_name': commodity.display_name,
+                                        'category': commodity.category,
+                                        'market_news': news_items,
+                                        'trend': trend,
+                                        'zscore': zscore,
+                                        'below_threshold': abs(zscore) <= self.zscore_threshold,
+                                        'source_urls': unique_source_urls,  # Use actual source URLs from cached news
+                                        'key_drivers': key_drivers if key_drivers else ['Historical data'],
+                                        'current_price': current_price,
+                                        'price_change': price_change,
+                                        'price_outlook': price_outlook
+                                    },
+                                    'from_cache_only': True,
+                                    'cache_date': result_date  # Add cache_date for historical results
+                                })
+                                existing_commodities.add(commodity.name)
+                except ValueError as e:
+                    # Commodity name validation failed - track and continue
+                    invalid_commodities.append(commodity.name)
+                    continue
+                except Exception as e:
+                    # Other errors - log but continue processing
+                    logger.debug(f"Error processing {commodity.name}: {e}")
+                    continue
+
+            # Log summary of invalid commodities (if any)
+            if invalid_commodities:
+                logger.warning(f"Skipped {len(invalid_commodities)} commodities with invalid names (check database for encoding issues)")
 
         # Step 3: For high z-score commodities without cache, query Perplexity AI
         commodities_to_query = []
