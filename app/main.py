@@ -186,13 +186,13 @@ if df_data is not None and df_list is not None:
         # with col1:
         #     # Disable refresh if no write access
         #     refresh_disabled = ai_database and not ai_database.has_write_access
-        #     if st.button("🔄 Refresh AI", use_container_width=True, disabled=refresh_disabled,
+        #     if st.button("🔄 Refresh AI", width='stretch', disabled=refresh_disabled,
         #                 help="Write access required to fetch new data" if refresh_disabled else "Fetch latest AI data"):
         #         st.session_state.ai_refresh = True
         # with col2:
         #     # Clear cache only works with write access
         #     clear_disabled = ai_database and not ai_database.has_write_access
-        #     if st.button("🗑️ Clear Cache", use_container_width=True, disabled=clear_disabled,
+        #     if st.button("🗑️ Clear Cache", width='stretch', disabled=clear_disabled,
         #                 help="Write access required to clear cache" if clear_disabled else "Clear cached AI data"):
         #         if ai_orchestrator:
         #             ai_orchestrator.daily_cache.clear()
@@ -555,7 +555,7 @@ if df_data is not None and df_list is not None:
                                 row=1, col=2
                             )
                             
-                            st.plotly_chart(fig, use_container_width=True)
+                            st.plotly_chart(fig, width='stretch')
                         else:
                             st.info(f"No data available for {chart_label} performance with the selected filters (after removing 0% changes).")
                     else:
@@ -677,7 +677,7 @@ if df_data is not None and df_list is not None:
                 
                 # Display commodity chart
                 with col1:
-                    st.plotly_chart(fig_commodity, use_container_width=True)
+                    st.plotly_chart(fig_commodity, width='stretch')
                 
                 # Display stock charts if available
                 if show_stocks:
@@ -764,7 +764,7 @@ if df_data is not None and df_list is not None:
                                 margin=dict(l=50, r=20, t=40, b=50)
                             )
                             
-                            st.plotly_chart(fig_stocks, use_container_width=True)
+                            st.plotly_chart(fig_stocks, width='stretch')
                         else:
                             st.info("No stock data available for the selected period")
             else:
@@ -962,7 +962,7 @@ if df_data is not None and df_list is not None:
                     subset=['Update Frequency']
                 ).format(format_dict, na_rep='-')
             
-            st.dataframe(styled_table, use_container_width=True, height=400)
+            st.dataframe(styled_table, width='stretch', height=400)
             
             # Summary statistics
             col1, col2, col3, col4 = st.columns(4)

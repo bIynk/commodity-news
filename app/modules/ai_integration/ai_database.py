@@ -301,7 +301,11 @@ class AIDatabase:
                 logger.info(f"Retrieved cached result for {commodity} from {query_date} ({timeframe})")
                 return response
 
+        except ValueError as e:
+            # Validation error (e.g., invalid commodity name) - re-raise to be handled by caller
+            raise
         except Exception as e:
+            # Unexpected errors only
             logger.error(f"Failed to retrieve cached result by date: {e}")
 
         return None
@@ -783,7 +787,11 @@ class AIDatabase:
 
             return None
 
+        except ValueError as e:
+            # Validation error (e.g., invalid commodity name) - re-raise to be handled by caller
+            raise
         except Exception as e:
+            # Unexpected errors only
             logger.error(f"Failed to get historical market intelligence for {commodity}: {e}")
             return None
 
