@@ -101,12 +101,19 @@ class DatabaseConnection:
                 value = value.strip().strip('{}')  # Remove curly braces if present
 
                 if key == 'SERVER':
-                    # Parse SERVER=host,port or SERVER=host
+                    # Parse SERVER=host,port or SERVER=host:port or SERVER=host
                     if ',' in value:
+                        # Format: host,port
                         host, port = value.split(',', 1)
                         params['host'] = host.strip()
                         params['port'] = port.strip()
+                    elif ':' in value:
+                        # Format: host:port
+                        host, port = value.rsplit(':', 1)
+                        params['host'] = host.strip()
+                        params['port'] = port.strip()
                     else:
+                        # Format: host (no port specified)
                         params['host'] = value
                         params['port'] = '1433'  # Default SQL Server port
                 elif key == 'DATABASE':
