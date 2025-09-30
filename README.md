@@ -1,88 +1,141 @@
 ## 1. Introduction
-The Vietnamese steel market is highly influenced by movements in global and regional commodity prices and demand trends. Staying ahead requires continuous monitoring of market-moving news across key commodities and macroeconomic drivers.  
+The Vietnamese steel market is highly influenced by movements in global and regional commodity prices and demand trends. Staying ahead requires continuous monitoring of market-moving news across key commodities and macroeconomic drivers.
 
-This project builds an **AI-powered dashboard** that combines a **structured summary** (top-level view of commodity movements and drivers) with **recent news snippets** (short articles with sources), modeled after tools like Perplexity AI.  
+This project provides a **unified commodity dashboard** that combines real-time SQL Server market data with AI-powered intelligence. The dashboard enriches market data with **structured summaries** (commodity movements and drivers) and **recent news snippets** (short articles with sources) powered by Perplexity AI.
 
-The system leverages **freely available web data sources** and uses Perplexity AI to retrieve, summarize, and present relevant insights with an intelligent **daily caching system** to minimize API costs.
+The system leverages **MS SQL Server** for real-time price data and optionally uses Perplexity AI to retrieve, summarize, and present market insights with an intelligent **daily caching system** to minimize API costs.
 
 ### Quick Start
 ```bash
 # Install dependencies
+cd app
 pip install -r requirements.txt
 
-# Set up API key
-cp .env.example .env
-# Edit .env and add your Perplexity API key
+# Set up required environment variables
+export DC_DB_STRING="your_mssql_connection_string"
+export PERPLEXITY_API_KEY="your_api_key"
 
-# Run dashboard
-streamlit run app.py
+# Run the dashboard
+streamlit run main.py
+
+# Optional: Enable write access for new AI queries
+export DC_DB_STRING_MASTER="connection_string_with_write_permissions"
 ```
 
-> ⚠️ **SSL Certificate Warning**: The current code has SSL verification temporarily disabled for testing. See [CLAUDE.md](CLAUDE.md#-ssl-certificate-hotfix-remove-for-production) for details on removing this before production deployment.
+> ⚠️ **SSL Certificate Warning**: The current code has SSL verification temporarily disabled for testing. See [Technical Debt Documentation](docs/architecture/ssl-workaround.md) for details on removing this before production deployment.
 
 ### Documentation
-- **Setup Guide**: See [SETUP.md](SETUP.md) for detailed installation
-- **Technical Docs**: See [CLAUDE.md](CLAUDE.md) for architecture details  
+📚 **Full developer documentation is organized in `docs/`**
+
+- **[Developer Documentation Hub](docs/README.md)** - Complete navigation guide
+- **[Architecture](docs/architecture/)** - System design and architecture
+- **[Development](docs/development/)** - Setup, coding standards, debugging
+- **[Quick Start Guide](docs/setup/installation.md)** - Installation and usage  
 
 ---
 
 ## 2. Objectives
-- Provide a **daily, AI-curated structured summary** of key steel-related commodities.  
-- Present **short recent news articles with cited sources** for deeper context.  
-- Ensure all sources are **freely accessible** for AI retrieval.  
-- Focus specifically on commodities most relevant to the **Vietnamese steel sector**.  
+- Provide **daily, AI-curated structured summaries** of key commodities across all sectors.
+- Present **short recent news articles with cited sources** for deeper context.
+- Ensure all sources are **freely accessible** for AI retrieval.
+- Cover **100+ commodities** across Agricultural, Chemicals, Energy, Fertilizer, Metals, Shipping, and Steel sectors.
+- Map **sector-specific authoritative sources** to guide AI intelligence gathering.  
 
 ---
 
 ## 3. System Architecture
 
 ### Core Components
-1. **Commodity Selection** – Track 5 key steel sector commodities (iron ore, coking coal, scrap steel, rebar, HRC)  
-2. **AI Query with JSON** – Send structured query to Perplexity AI requesting JSON response  
-3. **Smart Caching** – Daily cache system (Memory → Database → API)  
-4. **Dashboard Display**  
-   - **Structured Summary**: Table with prices, changes, drivers, trends  
-   - **Recent Developments**: News cards with dated events and sources
+1. **SQL Dashboard Base** – Real-time commodity prices and z-score analysis from MS SQL Server
+2. **AI Intelligence Layer** – Integrated Perplexity AI for market insights (now default)
+3. **Smart Caching** – Three-tier cache system (Memory → Database → API) for AI queries
+4. **Unified Display**
+   - **Market Data**: Real-time prices, changes, and technical indicators from SQL
+   - **AI Intelligence**: Structured summaries with drivers and trends
+   - **News Cards**: Recent developments with source citations
 
 ### Component Interaction
 ```
-┌─────────────┐       ┌──────────────┐       ┌──────────────┐
-│  Streamlit  │ ───── │ Orchestrator │ ───── │ Perplexity   │
-│  Dashboard  │       │   (Caching)  │       │     API      │
-└─────────────┘       └──────────────┘       └──────────────┘
-       │                     │                       ↑
-       │                     ↓                       │
-┌─────────────┐       ┌──────────────┐              │
-│    Data     │       │   SQLite     │ ─────────────┘
-│  Processor  │ ───── │   Database   │  (Only if no cache)
-└─────────────┘       └──────────────┘
+┌──────────────────────────────────────────────────────┐
+│              Unified Streamlit Dashboard              │
+└──────────────────────────────────────────────────────┘
+                           │
+            ┌──────────────┴──────────────┐
+            │                             │
+    ┌───────▼────────┐          ┌────────▼────────┐
+    │  SQL Data      │          │  AI Features    │
+    │  (Always On)   │          │  (Optional)     │
+    └───────┬────────┘          └────────┬────────┘
+            │                             │
+    ┌───────▼────────┐          ┌────────▼────────┐
+    │   MS SQL       │          │   Perplexity    │
+    │   Server       │          │   API + Cache   │
+    └────────────────┘          └─────────────────┘
 ```
 
 ### Key Files
-- `app.py` - Streamlit dashboard interface
-- `src/api/perplexity_client.py` - API communication with JSON parsing
-- `src/api/commodity_queries.py` - Query orchestration with 3-tier caching
-- `src/processing/data_processor.py` - Formats JSON data for display
-- `src/storage/database.py` - SQLite persistence layer  
+- `app/main.py` - Unified Streamlit dashboard
+- `app/modules/` - Core SQL dashboard modules
+- `app/modules/ai_integration/` - AI feature modules
+  - `perplexity_client.py` - API communication with JSON parsing
+  - `commodity_queries.py` - Query orchestration with 3-tier caching
+  - `data_processor.py` - Formats AI data for display
+  - `ai_database.py` - AI data persistence in MSSQL  
 
 ---
 
 ## 4. Workflow
-1. **Define Commodity Watchlist**  
-   - Steel focus: Iron ore, coking coal, scrap steel, steel rebar, HRC  
-2. **Daily JSON Query to Perplexity AI**  
-   - Request: Price, change, drivers, news, sources in structured JSON  
-   - Example: *"Summarize iron ore market from last week with price changes and key drivers"*  
-3. **Intelligent Caching**  
-   - Check daily cache before making API calls  
-   - Store results in SQLite for persistence  
-4. **Dashboard Rendering**  
-   - **Top section:** Summary table with all commodities  
-   - **Bottom section:** News cards with recent developments  
+
+### Base Dashboard (Always Available)
+1. **Load Market Data** - Real-time commodity prices from MS SQL Server
+2. **Calculate Indicators** - Z-scores, price changes, technical indicators
+3. **Display Analytics** - Charts, tables, and market metrics
+
+### Unified Workflow
+1. **Load Market Data** - Real-time commodity prices from MS SQL Server
+2. **Check AI Cache** - Memory → Database → API hierarchy
+3. **Query Perplexity** (if needed) - Structured JSON requests for market intelligence
+4. **Merge Intelligence** - Combine AI insights with SQL data
+5. **Display Dashboard**
+   - **Market Data**: Real-time prices and indicators (from SQL)
+   - **AI Summary**: Trends, drivers, and confidence scores (from Perplexity)
+   - **News Cards**: Recent developments with sources (from Perplexity)  
 
 ---
 
-## 5. Dashboard Layout
+## 5. Environment Variables
+
+### Required
+```bash
+# MS SQL Server connection string
+DC_DB_STRING="DRIVER={ODBC Driver 17 for SQL Server};SERVER=your_server;DATABASE=your_db;UID=user;PWD=password"
+```
+
+### Required for AI Features
+```bash
+# Perplexity API key (required)
+PERPLEXITY_API_KEY="your_perplexity_api_key"
+
+# Database write access (optional - for new AI queries)
+DC_DB_STRING_MASTER="connection_string_with_write_permissions"
+```
+
+### Optional Configuration
+```bash
+# AI Z-score threshold for querying (default: 2.0)
+# Only commodities with |z-score| > threshold trigger new API calls
+AI_ZSCORE_THRESHOLD="2.0"
+
+# Cache duration in hours (default: 24)
+AI_CACHE_HOURS="24"
+
+# Max news items to display per commodity (default: 6)
+MAX_NEWS_ITEMS="6"
+```
+
+---
+
+## 6. Dashboard Layout
 
 ### **Top Section: Structured Market Summary (Table Format)**  
 
@@ -127,7 +180,7 @@ The structured summary will be displayed as a **table** with the following colum
 
 ---
 
-## 6. Data Sources (Freely Available & AI-Accessible) - Steel Sector Focus
+## 7. Data Sources (Freely Available & AI-Accessible) - Steel Sector Focus
 
 ### 🔹 Iron Ore
 - [Reuters Commodities](https://www.reuters.com/business/commodities/)  
@@ -152,14 +205,15 @@ The structured summary will be displayed as a **table** with the following colum
 
 ---
 
-## 7. Technical Implementation
+## 8. Technical Implementation
 
 ### Core Components
-- **AI Agent**: Perplexity AI with JSON-structured responses
-- **Query Format**: Single comprehensive query for price, news, and drivers
-- **Backend**: Python with daily caching system to minimize API calls
-- **Frontend**: Streamlit dashboard with table and news cards
-- **Storage**: SQLite database for persistent daily cache
+- **Base Platform**: SQL Dashboard with real-time MS SQL Server data
+- **AI Integration**: Optional Perplexity AI layer for market intelligence
+- **Z-Score Filtering**: Smart API optimization based on price volatility
+- **Backend**: Python with modular architecture supporting feature flags
+- **Frontend**: Unified Streamlit dashboard with progressive enhancement
+- **Storage**: Shared MSSQL database for all data (prices, cache, AI results)
 
 ### JSON Query Structure
 ```json
@@ -180,44 +234,44 @@ The structured summary will be displayed as a **table** with the following colum
 
 **Key Feature**: Full URLs are provided for each source, allowing users to click through to the original articles for detailed follow-up.
 
-### Daily Caching Strategy
-- **Once-per-day queries**: Each commodity queried maximum once daily
-- **Three-tier cache**: Memory → Database → Perplexity AI
-- **90% cost reduction**: Single JSON query + daily caching
-- **Force refresh option**: Available when immediate updates needed
+### Unified Architecture
+- **Integrated System**: AI features now default part of dashboard
+- **Access Levels**: Read-only for cache, write access for new queries
+- **Shared Infrastructure**: Single codebase, database, and UI framework
+- **Intelligent Caching**: Three-tier cache (Memory → Database → API) for AI queries
+- **Z-Score Threshold**: Only query commodities with significant price movements (|z-score| > 2)
+- **Weekly News Aggregation**: Shows news from past 7 days for all commodities
+- **Cost Optimization**: 80-90% API cost reduction through smart caching and z-score filtering
 
-### Detailed Data Flow
+### Unified Data Flow
 
 ```
-USER ACTION (Get Today's Data / Force Refresh)
+USER OPENS DASHBOARD
             ↓
-1. CHECK MEMORY CACHE (~1ms)
-   → If found & valid: Return immediately
+1. LOAD SQL DATA (Always)
+   → Fetch real-time prices from MSSQL
+   → Calculate z-scores and indicators
+   → Prepare base visualizations
             ↓
-2. CHECK DATABASE CACHE (~10-50ms)
-   → If today's data exists: Load & update memory cache
+2. CHECK AI FEATURES (If ENABLE_AI_FEATURES=true)
+   → Verify Perplexity API key exists
+   → Initialize AI modules
+   → Check cache status
             ↓
-3. QUERY PERPLEXITY AI (~2-5s per commodity)
-   → Build JSON query with timeframe & commodity context
-   → Send comprehensive request for price + news + drivers
-   → Parse JSON response (with fallback to text parsing)
+3. FETCH AI INTELLIGENCE (If enabled)
+   → Calculate z-scores from weekly price changes
+   → Memory cache check (~1ms)
+   → Database cache check (including 7-day lookback)
+   → Filter: Only query if |z-score| > threshold
+   → Perplexity API call if needed (~2-5s per commodity)
+   → Aggregate weekly news for all commodities
+   → Store results in AI tables
             ↓
-4. SAVE TO DATABASE
-   → Store in query_results table
-   → Update price_history for trends
-   → Cache for future requests
-            ↓
-5. PROCESS & FORMAT DATA
-   → Format table rows: Price/Change, Drivers, Trend
-   → Extract domain names from URLs for table display
-   → Create news cards with dated events
-   → Apply visual indicators (↑↓ 📈📉)
-            ↓
-6. RENDER DASHBOARD
-   → Display metrics (bullish/bearish counts)
-   → Show summary table with clean source names
-   → Present news cards with clickable source links
-   → Links open in new tabs for article follow-up
+4. MERGE & DISPLAY
+   → Combine SQL data with AI insights
+   → Show enhanced metrics and trends
+   → Display news cards with sources
+   → Maintain responsive UI throughout
 ```
 
 ### Performance Characteristics
@@ -225,8 +279,26 @@ USER ACTION (Get Today's Data / Force Refresh)
 | Cache Level | Response Time | Use Case |
 |------------|---------------|----------|
 | Memory Cache | ~1ms | Same day, same session |
-| Database Cache | 10-50ms | Same day, new session/restart |
-| Perplexity API | 2-5s/commodity | First query of the day |
+| Database Cache | 10-50ms | Within 7 days, any session |
+| Perplexity API | 2-5s/commodity | High volatility (|z-score| > 2) |
+
+### Z-Score Threshold Filtering
+
+**How it works:**
+1. Calculate z-scores from weekly price percentage changes
+2. Only query Perplexity API for commodities with |z-score| > threshold (default: 2.0)
+3. Show cached news (up to 7 days old) for stable commodities
+4. Result: 80-90% reduction in API calls during normal market conditions
+
+**Example Scenarios:**
+- **Iron Ore**: +8% weekly change, z-score = 4.0 → **New API query**
+- **Steel HRC**: +0.5% weekly change, z-score = 0.25 → **Use cached news**
+- **Coking Coal**: -7% weekly change, z-score = -3.5 → **New API query**
+
+**Benefits:**
+- Focuses API usage on significant market movements
+- All commodities still display news (from cache)
+- Reduces costs while maintaining comprehensive coverage
 
 ### Cache Management
 
@@ -237,10 +309,70 @@ USER ACTION (Get Today's Data / Force Refresh)
 
 ---
 
-## 8. Expected Benefits
-- Daily, **up-to-date market intelligence** without relying on expensive subscriptions.  
-- **Steel-focused, commodity-linked view** tailored to Vietnam’s market dynamics.  
-- Efficient **information triage** (structured summary + expandable news).  
-- Fully **source-cited** to ensure reliability.  
+## 9. Expected Benefits
+- **Unified Experience**: Single dashboard for all commodity intelligence needs
+- **Cost Effective**: 80-90% API cost reduction through z-score filtering and intelligent caching
+- **Smart Resource Usage**: API calls only for commodities with significant price movements
+- **Weekly News Coverage**: All commodities show news from past 7 days regardless of volatility
+- **Expanded Coverage**: Scaling from 5 steel commodities to 100+ across all sectors (in progress)
+- **Vietnam-Focused**: Tailored insights for Vietnamese market dynamics
+- **Source Transparency**: All AI insights come with cited sources for verification
+- **Performance**: Sub-2s load times with intelligent caching
+- **Sector Intelligence**: Specialized news sources for each commodity sector
 
+---
 
+## 10. Project Status
+
+### Completed ✅
+- **Unified Dashboard**: AI and SQL dashboards fully integrated
+- **MSSQL Migration**: Shared database with AI tables (AI_Query_Cache, AI_Market_Intelligence, AI_News_Items)
+- **Module Integration**: AI features integrated into `modules/ai_integration/`
+- **3-Tier Caching**: Memory → Database → API cache system operational
+- **UI Integration**: AI intelligence displayed alongside SQL data
+- **Testing & Validation**: Core unified dashboard tested and operational
+
+### Current Phase 🟡 (Sector Expansion - Increasing AI Capacity)
+**Goal**: Expand from 5 steel commodities to 100+ commodities across all database sectors
+
+#### In Progress:
+- **Configuration Structure**: Creating `config/commodities.yaml` with sector mappings
+- **Data Model Updates**: Extending commodity dataclass for natural language queries
+- **Source Guidance System**: Mapping sectors to authoritative news sources
+- **Dynamic Loading**: Replacing hardcoded commodities with configuration-driven approach
+
+#### Key Tasks:
+- Map Bloomberg tickers to natural language names for Perplexity queries
+- Add sector-specific news sources (USDA for agriculture, EIA for energy, etc.)
+- Implement query budget controls for API cost management
+- Update UI for multi-sector commodity selection
+
+---
+
+## 11. Development
+
+### Running the Unified Dashboard
+```bash
+# Development mode with auto-reload
+streamlit run current/sql-dashboard/main.py --server.runOnSave=true
+
+# With debug logging
+LOG_LEVEL=DEBUG streamlit run current/sql-dashboard/main.py
+
+# Test AI features without API calls
+ENABLE_AI_FEATURES=true MOCK_API=true streamlit run current/sql-dashboard/main.py
+```
+
+### Testing
+```bash
+# Run test suite
+pytest tests/
+
+# Test AI integration specifically
+pytest tests/test_ai_integration.py
+
+# Test with coverage
+pytest --cov=modules tests/
+```
+
+---

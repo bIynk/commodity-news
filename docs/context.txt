@@ -1,0 +1,588 @@
+================================================================================
+COMMODITY AI DASHBOARD - FULL PROJECT CONTEXT
+================================================================================
+Generated: 2025-09-30
+Project Type: Python Streamlit Application
+Purpose: Real-time commodity market monitoring with AI-powered intelligence
+Target Market: Vietnamese steel sector and related commodities
+
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Project Name: Multi-Commodity Market Intelligence Platform
+Purpose: Unified dashboard combining real-time SQL Server market data with
+         AI-powered intelligence for commodity price monitoring and analysis
+Main Technologies: Python 3.11+, Streamlit, MS SQL Server, Perplexity AI
+Target Users: Research analysts monitoring Vietnamese steel market dynamics
+Coverage: 95+ commodities across 11 sectors (Agricultural, Chemicals, Energy,
+         Fertilizer, Metals, Shipping, Steel, etc.)
+
+
+================================================================================
+2. KEY DEPENDENCIES
+================================================================================
+
+Core Libraries:
+- streamlit==1.29.0         # Web dashboard framework
+- pandas==2.1.4             # Data manipulation
+- numpy==1.26.2             # Numerical operations
+- plotly==5.18.0            # Interactive visualizations
+- st-aggrid                 # Advanced data grid
+
+Database:
+- pyodbc==5.0.1             # MS SQL Server connectivity
+- sqlalchemy==2.0.23        # Database ORM
+
+API & HTTP:
+- requests==2.31.0          # HTTP client for Perplexity API
+- aiohttp==3.9.1            # Async HTTP operations
+- urllib3==2.1.0            # HTTP library
+
+Configuration:
+- python-dotenv==1.0.0      # Environment variable management
+- pyyaml==6.0.1             # YAML configuration parsing
+
+Testing:
+- pytest==7.4.3             # Testing framework
+- pytest-asyncio==0.21.1    # Async test support
+
+
+================================================================================
+3. ENVIRONMENT VARIABLES
+================================================================================
+
+Required:
+- DC_DB_STRING              # MS SQL Server connection (read-only OK)
+- PERPLEXITY_API_KEY        # Required for AI features
+
+Optional:
+- DC_DB_STRING_MASTER       # Write access for new AI queries
+- AI_ZSCORE_THRESHOLD       # Z-score threshold (default: 2.0)
+- AI_CACHE_HOURS            # Cache duration (default: 24)
+- MAX_NEWS_ITEMS            # News items to display (default: 6)
+- LOG_LEVEL                 # Logging level (default: INFO)
+
+
+================================================================================
+4. FOLDER STRUCTURE
+================================================================================
+
+/
+├── current/
+│   ├── sql-dashboard/                  # UNIFIED DASHBOARD (Production)
+│   │   ├── main.py                     # Entry point - unified dashboard
+│   │   ├── modules/
+│   │   │   ├── db_connection.py        # MSSQL connection management
+│   │   │   ├── data_loader.py          # Load SQL price data
+│   │   │   ├── calculations.py         # Z-scores, frequency detection
+│   │   │   ├── styling.py              # UI styling and themes
+│   │   │   ├── stock_data.py           # Stock market integration
+│   │   │   ├── news_data.py            # News source configuration
+│   │   │   ├── query_builder.py        # SQL query construction
+│   │   │   ├── config.py               # Environment configuration
+│   │   │   ├── constants.py            # Application constants
+│   │   │   ├── ai_section.py           # AI UI rendering (fragment)
+│   │   │   ├── utils/                  # Utility functions
+│   │   │   └── ai_integration/         # AI FEATURES (Integrated)
+│   │   │       ├── perplexity_client.py    # Perplexity API client
+│   │   │       ├── commodity_queries.py    # Query orchestration
+│   │   │       ├── data_processor.py       # AI data formatting
+│   │   │       ├── ai_database.py          # AI data persistence
+│   │   │       └── sector_config.py        # Sector news sources
+│   │   ├── pages/
+│   │   │   └── Chart_Analysis.py       # Advanced charting page
+│   │   ├── config/
+│   │   │   └── news_sources.yaml       # Sector-specific news sources
+│   │   ├── requirements.txt            # Python dependencies
+│   │   └── README.md                   # Dashboard documentation
+│   │
+│   └── ai-dashboard/                   # STANDALONE AI DASHBOARD (Reference)
+│       ├── main.py                     # Streamlit AI dashboard
+│       ├── src/
+│       │   ├── api/                    # Perplexity API integration
+│       │   ├── processing/             # Data processing
+│       │   ├── storage/                # Database operations
+│       │   └── utils/                  # Utilities
+│       └── requirements.txt
+│
+├── unified/                            # FUTURE UNIFIED ARCHITECTURE
+│   ├── main.py                         # Future unified entry point
+│   ├── shared/                         # Shared libraries
+│   │   ├── cache/                      # Cache management
+│   │   ├── database/                   # Database adapters
+│   │   ├── models/                     # Data models
+│   │   └── utils/                      # Shared utilities
+│   ├── src/features/                   # Feature modules
+│   │   ├── ai_insights/                # AI intelligence features
+│   │   ├── analytics/                  # Analytics features
+│   │   ├── market_data/                # Market data features
+│   │   └── ui_components/              # UI components
+│   └── config/                         # Configuration files
+│       ├── base_config.yaml
+│       ├── commodities.yaml
+│       └── environments/
+│
+├── legacy/                             # ARCHIVED CODE
+│   ├── sql-dashboard-original/         # Original SQL dashboard
+│   └── ai-dashboard-original/          # Original AI dashboard
+│
+├── scripts/                            # UTILITY SCRIPTS
+│   ├── migrate_to_mssql.py            # Database migration
+│   ├── test_ai_mssql_integration.py   # Integration tests
+│   └── debug_config_load.py           # Configuration debugging
+│
+├── .docs/                              # DOCUMENTATION HUB
+│   ├── README.md                       # Documentation index
+│   ├── context.txt                     # This file
+│   ├── architecture/                   # System architecture docs
+│   ├── implementation/                 # Implementation details
+│   ├── development/                    # Development guides
+│   ├── technical-debt/                 # Known issues
+│   ├── plans/                          # Implementation plans
+│   └── user-guides/                    # User documentation
+│
+├── README.md                           # Main project README
+├── config.yaml                         # Legacy AI config
+└── requirements.txt                    # Root dependencies
+
+
+================================================================================
+5. CORE MODULES AND FUNCTIONS
+================================================================================
+
+### current/sql-dashboard/main.py (Unified Dashboard Entry Point)
+Main Streamlit application integrating SQL data + AI intelligence
+- load_data_from_database(): Load commodity prices from MSSQL
+- initialize_ai_services(): Setup Perplexity client and orchestrator
+- render_ai_intelligence_section(): Display AI analysis (fragment)
+- calculate_price_changes(): Compute price movements and metrics
+- compute_frequency_aware_zscore(): Statistical volatility detection
+
+### modules/db_connection.py (Database Connection)
+class DatabaseConnection:
+- __init__(connection_string): Initialize MSSQL connection via SQLAlchemy
+- execute_query(query, params): Execute parameterized SQL queries
+- get_commodities_list(): Fetch commodity metadata
+- close(): Close database connection
+
+### modules/calculations.py (Analytics Engine)
+Functions:
+- calculate_price_changes(df, periods): Compute multi-period returns
+- compute_zscore(series, window): Rolling z-score calculation
+- detect_frequency(series): Auto-detect data frequency (daily/weekly/etc)
+- compute_frequency_aware_zscore(series, lookback, window):
+  Advanced z-score with frequency detection and volatility adjustment
+
+### modules/ai_integration/perplexity_client.py (AI API Client)
+class PerplexityClient:
+- __init__(api_key): Initialize Perplexity AI client
+- query_commodity(commodity, timeframe, query_type):
+  Query single commodity with JSON response parsing
+- batch_query(commodities, timeframe): Query multiple commodities
+- _build_prompt(commodity, timeframe): Construct structured JSON prompt
+- _make_request(prompt): POST to Perplexity API with rate limiting
+- _parse_response(response): Extract JSON data and citations
+
+### modules/ai_integration/commodity_queries.py (Query Orchestration)
+class CommodityQueryOrchestrator:
+- __init__(client, database, zscore_threshold, connection_string):
+  Initialize orchestrator with 3-tier cache (Memory → DB → API)
+- query_all_commodities(timeframe, force_refresh, commodity_zscores):
+  Intelligent query with z-score filtering (only query high volatility)
+- _query_commodity_with_context(commodity, timeframe):
+  Query single commodity with sector-specific context
+- get_categories(): Return unique commodity sectors
+- daily_cache: In-memory cache dict for same-day queries
+- load_commodities_from_database(): Dynamic commodity loading (95+ items)
+
+### modules/ai_integration/sector_config.py (News Source Configuration)
+class SectorConfig:
+- __init__(): Load news_sources.yaml with sector mappings
+- get_sector_sources_with_urls(sector): Get news sources for sector
+- get_all_sectors(): List all configured sectors
+- add_source_guidance(prompt, sector): Inject sector-specific sources
+
+### modules/ai_integration/ai_database.py (AI Data Persistence)
+class AIDatabase:
+- __init__(): Connect to MSSQL with AI tables
+- save_query_cache(commodity, query_date, timeframe, response):
+  Save Perplexity API response to AI_Query_Cache table
+- get_cached_query(commodity, query_date, timeframe):
+  Retrieve cached query if not expired
+- get_all_today_results(timeframe): Fetch all cached results for today
+- get_historical_market_intelligence(commodity, days_back):
+  Retrieve past AI analysis from AI_Market_Intelligence
+- save_market_intelligence(commodity, analysis_data):
+  Save parsed AI analysis to AI_Market_Intelligence table
+- save_news_items(commodity, news_items):
+  Save news headlines to AI_News_Items table
+- cleanup_expired_cache(days_to_keep): Remove old cache entries
+
+### modules/ai_integration/data_processor.py (AI Data Formatting)
+class DataProcessor:
+- process_query_results(results):
+  Convert raw API results to (table_data, news_cards)
+- format_for_export(table_data, news_cards, format):
+  Export to JSON/CSV/Markdown
+
+### modules/ai_section.py (AI UI Fragment)
+@st.fragment decorator for async AI data loading
+- render_ai_intelligence_section(): Render AI summary table and news cards
+- Displays: Trend indicators, Price changes, Key drivers, Date flagged
+- News cards with source links, formatted timestamps
+
+
+================================================================================
+6. DATABASE SCHEMA
+================================================================================
+
+MS SQL Server Database: CommodityDB
+
+### Price Data Tables (SQL Dashboard)
+- Ticker_Reference: Master commodity list with ticker, name, sector
+- Price_Data: Historical price data with date, price, volume
+- Commodities: Legacy commodity metadata table
+
+### AI Intelligence Tables (AI Features)
+1. AI_Query_Cache
+   - Stores raw Perplexity API responses
+   - Columns: Commodity, Query_Date, Timeframe, Query_Response (JSON),
+             Created_At, Expires_At, Cache_Hit_Count
+   - Purpose: Minimize API calls with 24-hour cache
+
+2. AI_Market_Intelligence
+   - Stores parsed AI analysis
+   - Columns: Commodity, Analysis_Date, Trend, Key_Drivers (JSON),
+             Current_Price, Price_Unit, Price_Change_Pct, Confidence_Score
+   - Purpose: Quick access to latest AI insights
+   - NEW: Can retrieve historical analysis (past 7 days)
+
+3. AI_News_Items
+   - Stores individual news items
+   - Columns: Commodity, News_Date, Headline, Summary, Source_URLs (JSON),
+             Sentiment, Impact_Score
+   - Purpose: Detailed news tracking with sources
+
+
+================================================================================
+7. KEY WORKFLOWS
+================================================================================
+
+### Base Dashboard Load (SQL Data Only)
+1. User opens dashboard → main.py loads
+2. Load environment: DC_DB_STRING connection string
+3. Connect to MSSQL via DatabaseConnection
+4. Fetch commodity prices: load_data_from_database()
+5. Calculate z-scores: compute_frequency_aware_zscore()
+6. Display charts, tables, metrics
+Response Time: 100-500ms
+
+### AI Intelligence Integration (With Perplexity)
+1. User opens dashboard with PERPLEXITY_API_KEY set
+2. Initialize AI services: PerplexityClient, CommodityQueryOrchestrator
+3. Load commodities from database (95+ items, dynamic)
+4. For each filtered commodity:
+   a. Calculate z-score from price history
+   b. Check memory cache (~1ms) → Hit? Return
+   c. Check database cache (~50ms) → Hit? Return
+   d. If no cache, check historical market intelligence (past 7 days)
+   e. If |z-score| < 2.0 AND has cache → Show cached data
+   f. If |z-score| >= 2.0 OR no cache → Query Perplexity API (~2-5s)
+   g. Parse JSON response, save to database with Query_Date
+5. Merge AI data with SQL data
+6. Display enhanced dashboard with AI section
+   - Table shows: Commodity, Trend, Price change, Key Drivers, Date flagged
+   - News cards show actual Query_Date instead of today's date
+Total Response Time: <2s (80% from cache)
+
+### Z-Score Filtering (Cost Optimization)
+Purpose: Only query Perplexity API for commodities with significant moves
+Algorithm:
+1. Calculate weekly price change percentage
+2. Compute z-score from 90-day rolling window
+3. If |z-score| > 2.0 → New API query (significant move)
+4. If |z-score| <= 2.0 AND has cache → Use cached news
+5. If |z-score| <= 2.0 AND no cache → Hide from display
+6. All visible commodities display news (fresh or cached)
+Result: 80-90% reduction in API costs during normal markets
+
+
+================================================================================
+8. ARCHITECTURE DECISIONS
+================================================================================
+
+### Unified Dashboard Approach (Current Production)
+- Single codebase: current/sql-dashboard/ contains all features
+- AI features integrated: modules/ai_integration/ subfolder
+- Progressive enhancement: SQL data always loads, AI optional
+- Shared database: MSSQL for both price data and AI cache
+- Access levels: Read-only OK for cache, write needed for new queries
+- Dynamic loading: Commodities loaded from database, not hardcoded
+
+### Data Flow Architecture
+```
+User → Streamlit UI
+         ↓
+   Load SQL Data (always)
+         ↓
+   Load Commodities from DB (95+)
+         ↓
+   Check PERPLEXITY_API_KEY
+         ↓ (if present)
+   Query AI Intelligence
+    Memory Cache → DB Cache → Historical Intelligence → API
+         ↓
+   Merge & Display
+```
+
+### Caching Strategy (3-Tier)
+1. Memory Cache (Session State)
+   - Duration: Single session
+   - Speed: ~1ms
+   - Cleared on: Page refresh, app restart
+
+2. Database Cache (MSSQL AI_Query_Cache)
+   - Duration: 24 hours configurable
+   - Speed: 10-50ms
+   - Cleared on: Manual clear, expired cleanup
+
+3. Historical Market Intelligence (AI_Market_Intelligence)
+   - Duration: 7 days lookback
+   - Speed: 30-100ms
+   - Purpose: Show real trend/driver data even if cache expired
+
+4. Perplexity API (External)
+   - Speed: 2-5s per commodity
+   - Cost: $0.005 per request
+   - Used: Only on cache miss + high z-score
+
+
+================================================================================
+9. TECHNICAL DEBT & KNOWN ISSUES
+================================================================================
+
+1. SSL Certificate Verification Disabled (🔴 CRITICAL)
+   Location: modules/ai_integration/perplexity_client.py
+   Issue: urllib3.disable_warnings() and verify=False in requests
+   Risk: Man-in-the-middle attacks
+   TODO: Remove before production deployment
+   See: .docs/technical-debt/ssl-workaround.md
+
+2. Code Duplication (~2,500 lines)
+   Locations: AI dashboard vs SQL dashboard modules
+   Impact: Maintenance overhead
+   Plan: Unified architecture in /unified/ folder
+   See: .docs/technical-debt/duplicate-code.md
+
+3. Performance Issues (10-25s load times initially)
+   Causes: Sequential API calls, large dataframes, no async
+   Targets: <2s full page load
+   Optimizations: Caching, z-score filtering, async/await
+   Status: IMPROVED - now <2s with caching
+   See: .docs/technical-debt/performance-issues.md
+
+4. ✅ RESOLVED: Hardcoded Commodities
+   Previous: 5 steel commodities hardcoded
+   Solution: Dynamic loading from database + sector configuration
+   Current: 95+ commodities across 11 sectors
+   Status: Complete as of January 2025
+
+
+================================================================================
+10. RECENT IMPLEMENTATION (September 2025)
+================================================================================
+
+### Unified Dashboard Integration
+Status: ✅ Testing Phase Complete
+Changes:
+- Merged AI features into SQL dashboard (modules/ai_integration/)
+- AI now default, not optional (requires PERPLEXITY_API_KEY)
+- Implemented 3-tier cache (Memory → DB → API)
+- Added z-score filtering for cost optimization
+- Fixed database connection methods (engine.connect() pattern)
+- Resolved pandas deprecation warnings (applymap → map)
+
+### Dynamic Commodity Loading (January 2025)
+Status: ✅ Complete - 95+ commodities operational
+Changes:
+- Removed hardcoded 5-commodity list
+- Load from Ticker_Reference table with sector mappings
+- Sector-specific news source guidance (11 sectors)
+- Human-readable names passed to Perplexity API
+- Commodity multi-select filter with sector grouping
+- Fixed UTF-8 encoding in config loading
+- Fixed z-score calculation for proper volatility filtering
+
+### Query Date Tracking (January 22, 2025)
+Status: ✅ Complete
+Changes:
+- Added Query_Date column to AI_Market_Intelligence table
+- New "Date flagged" column in AI summary table
+- News cards show actual query date instead of today's date
+- Fixed news card display logic - shows ALL cached data from past 7 days
+- Added get_historical_market_intelligence() method
+- Eliminated placeholder "Historical data only" - shows real cached data
+- Fixed SQL column name errors in AI_Market_Intelligence queries
+
+### Access Control Implementation
+Read-Only Access:
+- Can view cached AI data from database
+- Can view historical market intelligence (past 7 days)
+- Can use existing intelligence
+- Cannot query new data from Perplexity
+
+Write Access (DC_DB_STRING_MASTER):
+- Can query Perplexity API for new data
+- Can save cache to database
+- Can clear expired cache
+
+### AI Section Rendering (Streamlit Fragment)
+Location: modules/ai_section.py
+Features:
+- Async loading with st.fragment decorator
+- AG Grid table for AI summary (auto-height rows)
+- News cards with clickable source links
+- Trend indicators (📈 bullish, 📉 bearish, ➡️ stable)
+- Date flagged column showing when commodity was analyzed
+- Full content display in news cards (no truncation)
+
+
+================================================================================
+11. NEXT STEPS & ROADMAP
+================================================================================
+
+### Immediate (Current Sprint)
+1. ✅ Complete testing phase - validate all features
+2. ✅ Dynamic commodity loading from database
+3. ✅ Sector-specific news source guidance
+4. Remove SSL workaround before production
+
+### Short-term (Next 2 Weeks)
+1. Query Budget Controls
+   - Track API usage per day/month
+   - Implement spending limits
+   - Alert on quota approaching
+
+2. Performance Optimization
+   - Implement async/await for API calls
+   - Add parallel query processing
+   - Target <1s load time
+
+### Medium-term (1-3 Months)
+1. Migrate to /unified/ architecture
+   - Shared modules in /shared/
+   - Feature-based structure in /src/features/
+   - Reduce code duplication to <10%
+
+2. Enhanced AI Features
+   - Sentiment analysis on news
+   - Impact scoring for market events
+   - Correlation analysis between commodities
+   - Predictive price models
+
+
+================================================================================
+12. RUNNING THE APPLICATION
+================================================================================
+
+### Setup
+```bash
+# Install dependencies
+cd current/sql-dashboard
+pip install -r requirements.txt
+
+# Set environment variables
+export DC_DB_STRING="DRIVER={ODBC Driver 17 for SQL Server};SERVER=server;DATABASE=CommodityDB;UID=user;PWD=pass"
+export PERPLEXITY_API_KEY="your_perplexity_api_key"
+
+# Optional: Write access for new AI queries
+export DC_DB_STRING_MASTER="connection_string_with_write_permissions"
+```
+
+### Development Mode
+```bash
+# Run with auto-reload
+streamlit run main.py --server.runOnSave=true
+
+# Debug mode
+LOG_LEVEL=DEBUG streamlit run main.py
+```
+
+### Production Mode
+```bash
+# Standard run
+streamlit run main.py --server.port=8501 --server.address=0.0.0.0
+```
+
+
+================================================================================
+13. KEY CONTACTS & RESOURCES
+================================================================================
+
+Documentation: .docs/README.md
+Architecture: .docs/architecture/system-overview.md
+Debugging: .docs/development/debugging-guide.md
+Technical Debt: .docs/technical-debt/
+
+Perplexity AI: https://docs.perplexity.ai/
+Streamlit Docs: https://docs.streamlit.io/
+MS SQL Server: https://learn.microsoft.com/sql/
+
+
+================================================================================
+14. COMMODITY COVERAGE (CURRENT - 95+ Commodities)
+================================================================================
+
+Sectors (11 total):
+1. Agricultural - Corn, Soybeans, Wheat, Cotton, Sugar, Coffee, Rice, etc.
+2. Chemicals - Urea, Ammonia, Methanol, Ethylene, etc.
+3. Energy - Crude Oil (WTI, Brent), Natural Gas, Coal, Gasoline, etc.
+4. Fertilizer - DAP, Potash, Ammonium Nitrate, etc.
+5. Metals - Aluminum, Copper, Zinc, Lead, Nickel, etc.
+6. Precious Metals - Gold, Silver, Platinum, Palladium
+7. Shipping - Baltic Dry Index, Capesize, Panamax routes
+8. Steel Raw Materials - Iron Ore, Coking Coal, Scrap Steel
+9. Steel Products - Rebar, HRC, CRC, Wire Rod
+10. Soft Commodities - Cocoa, Orange Juice, Lumber
+11. Other - FX rates, indices, other commodities
+
+News Sources (Sector-Specific):
+- Agricultural: USDA, World-Grain, Farm Progress
+- Energy: EIA, OPEC, Rigzone
+- Metals: London Metal Exchange, Fastmarkets
+- Steel: SteelOrbis, MetalBulletin, Trading Economics
+- General: Reuters, Bloomberg, Investing.com
+- Vietnam-specific sources included per sector
+
+
+================================================================================
+15. PROJECT STATUS SUMMARY
+================================================================================
+
+Phase: Production - Dynamic commodity system operational
+Architecture: Unified Dashboard (current/sql-dashboard/)
+Commodity Coverage: ✅ 95+ commodities across 11 sectors
+AI Integration: ✅ Complete with sector-specific guidance
+Database: ✅ MSSQL with AI tables and query date tracking
+Caching: ✅ 3-tier system + historical intelligence (7 days)
+Performance: ✅ Target <2s achieved with caching
+Documentation: ✅ Comprehensive
+Testing: ✅ Complete with 95+ commodities
+Production Ready: 🟡 Almost (SSL issue remains)
+
+Recent Achievements:
+- ✅ Dynamic commodity loading (95+ items)
+- ✅ Sector-specific news source guidance
+- ✅ Query date tracking ("Date flagged" column)
+- ✅ Fixed news card date display
+- ✅ Historical intelligence retrieval (7-day lookback)
+- ✅ Eliminated placeholder data, shows real cached trends/drivers
+
+Next Milestone: Remove SSL workaround, implement query budget controls
+
+
+================================================================================
+END OF CONTEXT
+================================================================================

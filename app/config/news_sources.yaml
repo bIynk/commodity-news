@@ -1,0 +1,246 @@
+# News Sources Configuration for Sector-Specific Commodity Queries
+# Maps each sector to authoritative news sources for Perplexity AI queries
+
+default_settings:
+  vietnam_focus: true
+  cache_duration_hours: 24
+  max_sources_per_query: 5
+  include_general_sources: true
+
+general_sources:
+  - name: "Reuters"
+    url: "https://www.reuters.com/"
+  - name: "Bloomberg"
+    url: "https://www.bloomberg.com/"
+  - name: "Financial Times"
+    url: "https://www.ft.com/"   # ⚠️ Mostly paywalled
+  - name: "Trading Economics"
+    url: "https://tradingeconomics.com/"
+  - name: "Investing.com"
+    url: "https://www.investing.com/"
+  - name: "Báo chính phủ"
+    url: "https://chinhphu.vn/he-thong-van-ban"
+  - name: "Báo chính phủ"
+    url: "https://baochinhphu.vn/"
+
+sectors:
+  Steel:
+    sources:
+      - name: "SteelOrbis"
+        url: "https://www.steelorbis.com/"
+      - name: "SteelMint"
+        url: "https://www.steelmint.com/"
+      - name: "World Steel Association"
+        url: "https://worldsteel.org/"
+      - name: "SEAISI"
+        url: "https://seaisi.org/"
+      - name: "Vietnam Steel Association (VSA)"
+        url: "http://vsa.com.vn/"
+    vietnam_specific:
+      - name: "Hoa Phat Group"
+        url: "https://www.hoaphat.com.vn/"
+      - name: "Vietnam Steel Corporation (VNSteel)"
+        url: "https://vnsteel.vn/"
+
+  Agricultural:
+    sources:
+      - name: "USDA"
+        url: "https://www.usda.gov/"
+      - name: "AgWeb"
+        url: "https://www.agweb.com/"
+      - name: "Reuters Agriculture"
+        url: "https://www.reuters.com/business/environment/"
+      - name: "Farm Progress"
+        url: "https://www.farmprogress.com/"
+      - name: "Grain Central"
+        url: "https://www.graincentral.com/"
+      - name: "AgriCensus"   # ⚠️ Paywalled
+        url: "https://www.agricensus.com/"
+      - name: "Successful Farming"
+        url: "https://www.agriculture.com/"
+      - name: "Vietnam MARD"
+        url: "https://www.mard.gov.vn/"
+    vietnam_specific:
+      - name: "Vietnam Rubber Group"
+        url: "https://www.vnrubbergroup.com/"
+      - name: "Vietnam Coffee and Cocoa Association (VICOFA)"
+        url: "http://vicofa.org.vn/"
+
+  Energy:
+    sources:
+      - name: "EIA"
+        url: "https://www.eia.gov/"
+      - name: "OilPrice.com"
+        url: "https://oilprice.com/"
+      - name: "OPEC"
+        url: "https://www.opec.org/"
+      - name: "Natural Gas Intelligence"   # ⚠️ Limited access
+        url: "https://www.naturalgasintel.com/"
+      - name: "Oil & Gas Journal"
+        url: "https://www.ogj.com/"
+    vietnam_specific:
+      - name: "PetroTimes"
+        url: "https://petrovietnam.petrotimes.vn/"
+      - name: "PetroVietnam"
+        url: "https://www.pvn.vn/"
+      - name: "Vinacomin"
+        url: "http://www.vinacomin.vn/"
+      - name: "EVN"
+        url: "https://www.evn.com.vn/vi-VN/news-l/Thong-cao-bao-chi-60-142"
+
+  Metals:
+    sources:
+      - name: "Kitco"
+        url: "https://www.kitco.com/"
+      - name: "Mining.com"
+        url: "https://www.mining.com/"
+      - name: "Shanghai Metals Market (SMM)"   # ⚠️ Limited free access
+        url: "https://www.metal.com/"
+      - name: "MinEx Consulting"
+        url: "https://www.minexconsulting.com/"
+    vietnam_specific:
+      - name: "Vinacomin"
+        url: "http://www.vinacomin.vn/"
+
+  Chemicals:
+    sources:
+      - name: "Chemical & Engineering News"
+        url: "https://cen.acs.org/"
+      - name: "ChemOrbis"
+        url: "https://www.chemorbis.com/"
+      - name: "Asian Chemical Connections"
+        url: "https://www.asianchemicalconnections.com/"
+    vietnam_specific:
+      - name: "PVFCCo"
+        url: "https://www.pvfcco.com.vn/"
+      - name: "DPM Fertilizer"
+        url: "https://dpm.vn/"
+
+  Fertilizer:
+    sources:
+      - name: "The Fertilizer Institute"
+        url: "https://www.tfi.org/"
+      - name: "IFA (International Fertilizer Association)"
+        url: "https://www.fertilizer.org/"
+    vietnam_specific:
+      - name: "PVFCCo"
+        url: "https://www.pvfcco.com.vn/"
+      - name: "Phu My Fertilizer Plant"
+        url: "https://www.dpm.vn/"
+
+  Livestock:
+    sources:
+      - name: "ThePigSite"
+        url: "https://www.thepigsite.com/"
+      - name: "PoultryWorld"
+        url: "https://www.poultryworld.net/"
+      - name: "National Hog Farmer"
+        url: "https://www.nationalhogfarmer.com/"
+      - name: "Beef Magazine"
+        url: "https://www.beefmagazine.com/"
+      - name: "Global Meat News"
+        url: "https://www.globalmeatnews.com/"
+      - name: "MeatPoultry.com"
+        url: "https://www.meatpoultry.com/"
+    vietnam_specific:
+      - name: "Vietnam Poultry Association"
+        url: "http://hoichannuoi.org.vn/"
+      - name: "CP Vietnam Livestock"
+        url: "https://www.cp.com.vn/"
+
+  Shipping_Freight:
+    sources:
+      - name: "Baltic Exchange"
+        url: "https://www.balticexchange.com/"
+      - name: "TradeWinds"
+        url: "https://www.tradewindsnews.com/"
+      - name: "Lloyd's List"   # ⚠️ Paywalled
+        url: "https://lloydslist.maritimeintelligence.informa.com/"
+      - name: "Freightos"
+        url: "https://www.freightos.com/"
+      - name: "Drewry"
+        url: "https://www.drewry.co.uk/"
+      - name: "Clarksons Research"   # ⚠️ Paywalled
+        url: "https://www.clarksons.net/"
+      - name: "Journal of Commerce (JOC)"   # ⚠️ Paywalled
+        url: "https://www.joc.com/"
+    vietnam_specific:
+      - name: "VINAMARINE"
+        url: "http://www.vinamarine.gov.vn/"
+      - name: "Vinalines"
+        url: "https://www.vinalines.com.vn/"
+      - name: "Saigon Port"
+        url: "http://www.saigonport.vn/"
+
+  Aviation:
+    sources:
+      - name: "IATA"
+        url: "https://www.iata.org/"
+      - name: "Aviation Week"   # ⚠️ Limited access
+        url: "https://aviationweek.com/"
+      - name: "FlightGlobal"
+        url: "https://www.flightglobal.com/"
+      - name: "CAPA Centre for Aviation"   # ⚠️ Partly paywalled
+        url: "https://centreforaviation.com/"
+      - name: "Air Cargo News"
+        url: "https://www.aircargonews.net/"
+    vietnam_specific:
+      - name: "CAAV"
+        url: "https://caa.gov.vn/"
+      - name: "Vietnam Airlines"
+        url: "https://www.vietnamairlines.com/"
+      - name: "Vietjet Air"
+        url: "https://www.vietjetair.com/"
+
+  Fishery:
+    sources:
+      - name: "SeafoodSource"
+        url: "https://www.seafoodsource.com/"
+      - name: "Undercurrent News"
+        url: "https://www.undercurrentnews.com/"
+      - name: "IntraFish"   # ⚠️ Paywalled
+        url: "https://www.intrafish.com/"
+      - name: "National Fisherman"
+        url: "https://www.nationalfisherman.com/"
+      - name: "World Fishing & Aquaculture"
+        url: "https://fishingnews.co.uk/"
+      - name: "FAO Fisheries"
+        url: "https://www.fao.org/fisheries/"
+    vietnam_specific:
+      - name: "VASEP"
+        url: "https://vasep.com.vn/"
+      - name: "Vietnam Fisheries Department"
+        url: "https://tongcucthuysan.gov.vn/"
+
+  Grains:
+    sources:
+      - name: "USDA Grains"
+        url: "https://www.usda.gov/topics/farming/grains"
+      - name: "Grain Central"
+        url: "https://www.graincentral.com/"
+      - name: "World-Grain.com"
+        url: "https://www.world-grain.com/"
+      - name: "International Grains Council (IGC)"
+        url: "https://www.igc.int/"
+      - name: "Grain Market Report"
+        url: "https://www.igc.int/en/publications/gmr.aspx"
+    vietnam_specific:
+      - name: "Vietnam Food Association (VFA)"
+        url: "http://www.vfa.gov.vn/"
+      - name: "Vinafood 2"
+        url: "http://www.vinafood2.com.vn/"
+      - name: "Vinafood 1"
+        url: "http://www.vinafood1.com.vn/"
+
+
+query_settings:
+  prompt_template: |
+    Analyze {commodity_name} ({ticker}) in the {sector} sector.
+    Focus on sources like: {sources}
+    Emphasize Vietnam market impacts and regional dynamics.
+    Provide current price levels, recent trends, and market drivers.
+
+  api_parameters:
+    temperature: 0.2
+    max_tokens: 1500
+    search_recency_filter: "week"
