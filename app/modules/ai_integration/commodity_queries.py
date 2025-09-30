@@ -226,8 +226,8 @@ class CommodityQueryOrchestrator:
                     historical_intelligence = self.database.get_historical_market_intelligence(commodity.name, days=7)
 
                     if weekly_news or historical_intelligence:
-                        # Create a result from historical data
-                        logger.info(f"Found historical data for {commodity.name} (no recent cache)")
+                        # Create a result from historical data (don't log each one - will log summary at end)
+                        # logger.info(f"Found historical data for {commodity.name} (no recent cache)")
 
                         # Process news items and collect source URLs
                         news_items = []
@@ -375,7 +375,11 @@ class CommodityQueryOrchestrator:
             self.daily_cache[timeframe] = results
             self.cache_date = cache_date
 
-        logger.info(f"Returning {len(results)} commodities with data (including historical)")
+        # Log summary statistics
+        cached_count = len(existing_commodities)
+        historical_count = len([r for r in results if r.get('from_cache_only')])
+        fresh_count = len(commodities_to_query) if commodities_to_query else 0
+        logger.info(f"Returning {len(results)} commodities: {cached_count} cached, {historical_count} historical, {fresh_count} fresh")
         return results
     
     def _query_commodity_with_context(
